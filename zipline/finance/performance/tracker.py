@@ -69,6 +69,8 @@ import zipline.finance.risk as risk
 from zipline.finance import trading
 from . period import PerformancePeriod
 
+trd_env = trading.TradingEnvironment()
+
 log = logbook.Logger('Performance')
 
 
@@ -110,9 +112,12 @@ class PerformanceTracker(object):
                 risk.RiskMetricsCumulative(self.sim_params)
 
         elif self.emission_rate == 'minute':
-            self.all_benchmark_returns = pd.Series(index=pd.date_range(
-                self.sim_params.first_open, self.sim_params.last_close,
-                freq='Min'))
+            self.all_benchmark_returns = pd.Series(
+                index=trd_env.minutes_for_days_in_range(
+                    self.sim_params.first_open,
+                    self.sim_params.last_close
+                )
+            )
             self.intraday_risk_metrics = \
                 risk.RiskMetricsCumulative(self.sim_params)
 
