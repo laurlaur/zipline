@@ -453,12 +453,6 @@ class PerformanceTracker(object):
         and send it out on the results socket.
         """
 
-        log_msg = "Simulated {n} trading days out of {m}."
-        log.info(log_msg.format(n=int(self.day_count), m=self.total_days))
-        log.info("first open: {d}".format(
-            d=self.sim_params.first_open))
-        log.info("last close: {d}".format(
-            d=self.sim_params.last_close))
 
         bms = self.cumulative_risk_metrics.benchmark_returns
         ars = self.cumulative_risk_metrics.algorithm_returns
