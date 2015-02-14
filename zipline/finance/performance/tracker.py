@@ -169,6 +169,7 @@ class PerformanceTracker(object):
 
         self.saved_dt = self.period_start
         self.returns = pd.Series(index=self.trading_days)
+        self.p_value = pd.Series(index=self.trading_days)
         # one indexed so that we reach 100%
         self.day_count = 0.0
         self.txn_count = 0
@@ -411,21 +412,29 @@ class PerformanceTracker(object):
         """
         self.update_performance()
         completed_date = normalize_date(self.market_close)
-
+        # increment the day counter before we move markers forward.
+        self.day_count += 1.0
         # add the return results from today to the returns series
         self.returns[completed_date] = self.todays_performance.returns
+            # move the market day markers forward
+        self.market_open, self.market_close = \
+            trading.environment.next_open_and_close(self.market_open)
+        small_dict_to_return = {'daily_perf': {'portfolio_value': self.todays_performance.returns}};
 
+        return small_dict_to_return
+
+        #lssilva this code is not needed for me should never have been coupled like that
         # update risk metrics for cumulative performance
         self.cumulative_risk_metrics.update(
             completed_date,
             self.todays_performance.returns,
             self.all_benchmark_returns[completed_date])
 
-        # increment the day counter before we move markers forward.
-        self.day_count += 1.0
+
 
         # Take a snapshot of our current performance to return to the
         # browser.
+        #Performance KILLER i really means KILLER should have used dataframe and fixed constant keys to convert to dict every min?
         daily_update = self.to_dict()
 
         # On the last day of the test, don't create tomorrow's performance
@@ -434,9 +443,7 @@ class PerformanceTracker(object):
         if self.market_close >= self.last_close:
             return daily_update
 
-        # move the market day markers forward
-        self.market_open, self.market_close = \
-            trading.environment.next_open_and_close(self.market_open)
+
 
         # Roll over positions to current day.
         self.todays_performance.rollover()
@@ -444,7 +451,6 @@ class PerformanceTracker(object):
         self.todays_performance.period_close = self.market_close
 
         self.check_upcoming_dividends(completed_date)
-
         return daily_update
 
     def handle_simulation_end(self):
@@ -452,7 +458,13 @@ class PerformanceTracker(object):
         When the simulation is complete, run the full period risk report
         and send it out on the results socket.
         """
-
+        return {}
+        log_msg = "Simulated {n} trading days out of {m}."
+        log.info(log_msg.format(n=int(self.day_count), m=self.total_days))
+        log.info("first open: {d}".format(
+            d=self.sim_params.first_open))
+        log.info("last close: {d}".format(
+            d=self.sim_params.last_close))
 
         bms = self.cumulative_risk_metrics.benchmark_returns
         ars = self.cumulative_risk_metrics.algorithm_returns

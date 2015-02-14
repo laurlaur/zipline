@@ -483,10 +483,11 @@ class TradingAlgorithm(object):
             for perf in self.gen:
                 perfs.append(perf)
 
+
             # convert perf dict to pandas dataframe
             daily_stats = self._create_daily_stats(perfs)
 
-        self.analyze(daily_stats)
+       # self.analyze(daily_stats)
 
         return daily_stats
 
@@ -496,16 +497,6 @@ class TradingAlgorithm(object):
         # TODO: the loop here could overwrite expected properties
         # of daily_perf. Could potentially raise or log a
         # warning.
-        for perf in perfs:
-            if 'daily_perf' in perf:
-
-                perf['daily_perf'].update(
-                    perf['daily_perf'].pop('recorded_vars')
-                )
-                perf['daily_perf'].update(perf['cumulative_risk_metrics'])
-                daily_perfs.append(perf['daily_perf'])
-            else:
-                self.risk_report = perf
 
         daily_dts = [np.datetime64(perf['period_close'], utc=True)
                      for perf in daily_perfs]
